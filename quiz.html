@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Quiz — Sinais no Relacionamento (ajustado)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --content-max: 640px; --card-max: 520px; --img-min: 160px; --img-max: 220px;
+    --bg:#ffffff; --text:#111827; --muted:#6b7280; --line:#e5e7eb;
+    --accent1:#22c55e; --accent2:#0ea5e9; --shadow:0 10px 24px rgba(0,0,0,.06); --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 "Inter",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif}
+  .wrap{max-width:var(--content-max);margin:22px auto;padding:0 14px}
+
+  .brand{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .logo{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;background:#111;color:#fff;font-weight:900;box-shadow:var(--shadow);font-size:14px}
+  .progress{width:100%;height:6px;border-radius:999px;background:#f3f4f6;margin:12px 0 10px;overflow:hidden;border:1px solid var(--line)}
+  .bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent1),var(--accent2));transition:width .25s ease}
+
+  .callout{display:flex;align-items:center;gap:8px;justify-content:center;color:#065f46;background:#ecfdf5;border:1px solid #a7f3d0;
+           font-weight:700;border-radius:10px;padding:8px 10px;margin:6px auto 12px;width:fit-content;max-width:100%}
+  .callout .icon{font-weight:900}
+
+  .stage{display:grid;gap:10px;place-items:center}
+
+  /* títulos das perguntas – mais evidentes */
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;background:#eef2ff;color:#1e3a8a;border:1px solid #c7d2fe;
+    padding:6px 10px;border-radius:999px;font-weight:900;font-size:.8rem;margin:6px auto 2px
+  }
+  .title{font-size:1.35rem;font-weight:900;text-align:center;margin:4px 0 2px}
+  .hint{color:#111827;text-align:center;margin:0 0 10px;font-size:1rem;font-weight:600} /* agora PRETO e com destaque */
+
+  /* cards */
+  .qcard{width:100%;max-width:var(--card-max);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;background:#fff;cursor:pointer;transition:transform .08s ease}
+  .qcard:hover{transform:translateY(-1px)}
+  .qimg {
+    width: 100%;
+    height: clamp(var(--img-min), 22vw, var(--img-max));
+    object-fit: contain;
+    background: #ffffff;
+    padding: 12px;
+  }
+  .qfoot{background:#0b1220;color:#f9fafb;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .qtitle{font-weight:900;font-size:.98rem}
+  .qnote{opacity:.85;font-size:.85rem}
+  .radio{width:18px;height:18px;border-radius:50%;border:2px solid #cbd5e1;background:#0b1220}
+
+  /* pills */
+  .pill{width:100%;max-width:var(--card-max);display:flex;align-items:center;gap:10px;border:2px solid #111827;border-radius:12px;padding:12px 14px;background:#fff;box-shadow:var(--shadow);cursor:pointer}
+  .pill:hover{transform:translateY(-1px)}
+  .dot{width:10px;height:10px;border-radius:50%;background:#111827}
+  .pill b{font-weight:900;font-size:1rem}
+
+  /* inputs de nome */
+  .ibox{width:100%;max-width:var(--card-max);display:grid;gap:8px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:var(--shadow);padding:14px}
+  .ibox label{font-weight:900}
+  .itxt{width:100%;border:2px solid #111827;border-radius:10px;padding:12px 12px;font-size:1rem}
+  .ibtn{justify-self:end;border:0;border-radius:10px;padding:10px 14px;background:#111827;color:#fff;font-weight:900;cursor:pointer}
+  .ibtn:disabled{opacity:.5;cursor:not-allowed}
+
+  /* resultado */
+  .result{display:none;gap:10px}
+  .rez{border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;background:#fff}
+  .rez h3{margin:0 0 6px;font-size:1.05rem}
+  .meter{height:12px;background:#f3f4f6;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .fill{height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444);transition:width .4s ease}
+  .tag{display:inline-block;padding:5px 8px;border-radius:999px;font-weight:900;margin:6px 0 0;font-size:.85rem}
+  .low{background:#ecfdf5;color:#065f46}
+  .mid{background:#fffbeb;color:#92400e}
+  .high{background:#fef2f2;color:#991b1b}
+
+  .cta-box{margin-top:20px;text-align:center}
+  .cta-btn {
+    display:inline-block;
+    padding:12px 20px;
+    background: var(--accent2);
+    color:#fff;
+    font-weight:900;
+    font-size:1rem;
+    border-radius:10px;
+    text-decoration:none;
+    animation: pulse 1.5s infinite;
+    margin-top:12px;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(14,165,233, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(14,165,233, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(14,165,233, 0); }
+  }
+
+  .bold-name { font-weight: 900; color: #111827; }
+  .small-note { color: var(--muted); margin-top:6px; font-size:.9rem; }
+  
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;background:#111827;color:#fff;padding:8px 12px;border-radius:10px;display:none;box-shadow:var(--shadow);font-size:.92rem}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">QZ</div>
+      <div class="progress"><div id="bar" class="bar"></div></div>
+    </div>
+
+    <div class="callout"><span class="icon">✔</span> VOCÊ GANHOU 1 ACESSO GRÁTIS!</div>
+
+    <div id="stage" class="stage"></div>
+
+    <div id="result" class="result">
+      <div class="rez">
+        <h3>Seu panorama</h3>
+        <div id="rezTag" class="tag low">Baixo</div>
+        <div style="margin:6px 0 4px;color:#6b7280">Intensidade percebida dos sinais</div>
+        <div class="meter"><div id="fill" class="fill"></div></div>
+        <p id="rezText" style="margin:8px 0 0"></p>
+      </div>
+      <!-- Nova chamada pra ação -->
+      <div class="rez cta-box">
+        <h3>Acesso Grátis ao Nosso App Espião</h3>
+        <p>Digite **o número de WhatsApp** que deseja monitorar e comece a clonar conversas escondidas em tempo real. Simulação — nada disso é real!</p>
+        <br>
+        <a href="https://espi-o.onrender.com" class="cta-btn" id="goSpy">👉 Ir ao App Espião</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Preencha para continuar.</div>
+
+  <!-- Áudio do quiz -->
+  <audio id="quizSound" src="quiz.mp3" preload="auto"></audio>
+
+<script>
+/* ===== Tracking base (flat backend /track) ===== */
+const TRACK_URL = "/track";
+const LEAD_ID = (() => {
+  try{
+    let id = localStorage.getItem("lead_id");
+    if (!id) { id = (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)) + "-" + Date.now(); localStorage.setItem("lead_id", id); }
+    return id;
+  }catch(e){ return Math.random().toString(36).slice(2)+"-"+Date.now(); }
+})();
+let FINISHED = false;
+function sendBeaconJSON(url, data) {
+  try {
+    const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+    if (navigator.sendBeacon) return navigator.sendBeacon(url, blob);
+  } catch(e){}
+  fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(data) }).catch(()=>{});
+}
+function track(eventName, payload={}) {
+  const base = { lead_id: LEAD_ID, event: eventName, ts: new Date().toISOString(), href: location.href, ua: navigator.userAgent };
+  sendBeaconJSON(TRACK_URL, { ...base, ...payload });
+}
+window.addEventListener("beforeunload", () => {
+  if (!FINISHED) track("quiz_abandon", { step_index: current, step_total: (typeof QUESTIONS!=="undefined"? QUESTIONS.length : null) });
+});
+
+/* ===== Estado ===== */
+let current = 0;
+let answers = {};
+let who = "parceiro(a)";
+let userName = "";
+let partnerName = "";
+
+/* ===== DOM ===== */
+const stage = document.getElementById('stage');
+const bar = document.getElementById('bar');
+const result = document.getElementById('result');
+const rezTag = document.getElementById('rezTag');
+const rezText = document.getElementById('rezText');
+const fill = document.getElementById('fill');
+const toast = document.getElementById('toast');
+const goSpyBtn = document.getElementById('goSpy');
+
+/* ===== Som ===== */
+const quizSound = document.getElementById('quizSound');
+function playSound(){
+  try { if(quizSound){ quizSound.currentTime = 0; quizSound.play().catch(()=>{}); } } catch(e){}
+}
+
+function showToast(m){ toast.textContent=m; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1200); }
+
+/* ===== Perguntas =====
+   Ordem: 0 who → 1 nameUser → 2 namePartner → 3..12 perguntas */
+const QUESTIONS = [
+  {
+    type:"who",
+    options:[
+      { 
+        id:"parceiro", 
+        img:"https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2642.svg", 
+        label:"Quero avaliar sinais no meu parceiro (marido/namorado)"
+      },
+      { 
+        id:"parceira", 
+        img:"https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2640.svg", 
+        label:"Quero avaliar sinais na minha parceira (esposa/namorada)"
+      }
+    ]
+  },
+  { type:"nameUser" },
+  { type:"namePartner" },
+  {
+    title: "Ele(a) ainda divide a vida com você... ou só compartilha mentiras?",
+    sub: "Celular sempre virado pra baixo, senha trocada sem dizer nada, e aquele pânico disfarçado quando você pega sem avisar. Já sentiu que o aparelho virou um cofre – e você não tem mais a chave?",
+    options: [
+      { score: 2, text: "🔒 Sim, está bem mais secreto(a)" },
+      { score: 1, text: "🤫 Um pouco mais reservado(a)" },
+      { score: 0, text: "📱 Não percebi nada disso" }
+    ]
+  },
+  {
+    title: "O roteiro da rotina mudou… e você nem foi avisado(a)?",
+    sub: "Chegadas mais tarde, desculpas que não se sustentam, compromissos que nunca existiram antes. Parece que tem outra vida acontecendo sem você perceber?",
+    options: [
+      { score: 2, text: "⏰ Sim, acontece direto" },
+      { score: 1, text: "📅 De vez em quando" },
+      { score: 0, text: "📍 Segue a mesma rotina de antes" }
+    ]
+  },
+  {
+    title: "O carinho virou um enigma: esfriou ou é só atuação?",
+    sub: "Distante como se não estivesse mais ali... e do nada, um afeto exagerado que parece mais culpa do que amor.",
+    options: [
+      { score: 2, text: "🎭 Oscila bastante" },
+      { score: 1, text: "🧊 Um pouco diferente" },
+      { score: 0, text: "❤️ Nada fora do comum" }
+    ]
+  },
+  {
+    title: "Toda pergunta simples vira interrogatório?",
+    sub: "Basta você perguntar algo banal e já vem uma reação defensiva. ‘Por que isso agora?’ ‘Tá desconfiando de mim?’ Como se a culpa fosse sua por perguntar.",
+    options: [
+      { score: 2, text: "🛡️ Com frequência" },
+      { score: 1, text: "⚠️ Às vezes" },
+      { score: 0, text: "🙃 Quase nunca" }
+    ]
+  },
+  {
+    title: "As histórias não batem… ou batem de forma ensaiada?",
+    sub: "Explicações com furos, horários que não fecham, versões diferentes pra mesma situação. Tá mais pra roteiro de série do que pra vida real.",
+    options: [
+      { score: 2, text: "📉 Sim, várias vezes" },
+      { score: 1, text: "🤔 Já notei algumas vezes" },
+      { score: 0, text: "✅ Não, sempre faz sentido" }
+    ]
+  },
+  {
+    title: "Novo perfume, nova roupa… novo(a) pra quem?",
+    sub: "Mudanças no visual que não são pra você. Se arruma como nunca, mas só pra sair sozinho(a). Quem é que tá recebendo essa versão premium do seu parceiro(a)?",
+    options: [
+      { score: 2, text: "💅 Mudou bastante" },
+      { score: 1, text: "👗 Um pouco" },
+      { score: 0, text: "🙈 Nada relevante" }
+    ]
+  },
+  {
+    title: "Privacidade… ou segredo mesmo?",
+    sub: "O celular virou extensão do corpo, apps fechados com reflexo de ninja, incômodo real quando você se aproxima. Tá escondendo o quê… ou quem?",
+    options: [
+      { score: 2, text: "🚫 Sim, muito secreto(a)" },
+      { score: 1, text: "👀 Mais reservado(a)" },
+      { score: 0, text: "🧘 Apenas privacidade normal" }
+    ]
+  },
+  {
+    title: "Gente nova demais no pedaço?",
+    sub: "Contatos que surgem do nada, estão sempre por perto e você mal conhece. E parece que você virou o estranho(a) no próprio relacionamento.",
+    options: [
+      { score: 2, text: "👥 Sim, muito presentes" },
+      { score: 1, text: "👤 Alguns, às vezes" },
+      { score: 0, text: "🤷‍♂️ Nada fora do normal" }
+    ]
+  },
+  {
+    title: "Planos cancelados, promessas quebradas e sempre uma desculpa pronta?",
+    sub: "Do nada, tudo vira ‘imprevisto’. Mas o que antes era prioridade, agora parece incômodo. Só sobrou você segurando a agenda vazia e o coração cheio de dúvida.",
+    options: [
+      { score: 2, text: "❌ Acontece direto" },
+      { score: 1, text: "🔄 Ocasionalmente" },
+      { score: 0, text: "📌 Quase nunca" }
+    ]
+  }
+];
+
+function steps(){ return QUESTIONS.length; }
+
+/* ===== Render ===== */
+function render(){
+  stage.innerHTML = "";
+  result.style.display = "none";
+
+  const q = QUESTIONS[current];
+
+  // evento de visualização de etapa
+  try {
+    track("quiz_step_view", { step_index: current, step_total: QUESTIONS.length, type: (q.type || "question") });
+  } catch(e){}
+
+  // badge + títulos
+  if(!q.type || q.type === "default"){
+    addBadge();
+  }
+
+  if(q.type === "who"){
+    addTitles("Selecione sobre quem você tem dúvidas:", "Escolha uma opção abaixo");
+    q.options.forEach(o=>{
+      const card=document.createElement('div');
+      card.className="qcard"; card.tabIndex=0;
+      card.innerHTML=`
+        <img class="qimg" src="${o.img}" alt="${o.label}" loading="lazy"/>
+        <div class="qfoot">
+          <div>
+            <div class="qtitle">${o.label}</div>
+            <div class="qnote">${o.note||""}</div>
+          </div>
+          <div class="radio"></div>
+        </div>`;
+      card.addEventListener('click', ()=>{
+        playSound();
+        who = o.id === "parceira" ? "parceira" : "parceiro";
+        answers[current]={score:0,choice:o.id};
+        try { track("quiz_select_target", { choice: o.id }); } catch(e){}
+        autoNext();
+      });
+      stage.appendChild(card);
+    });
+  } else if(q.type === "nameUser"){
+    renderNameBox({
+      label:"Seu nome",
+      placeholder:"Digite seu nome",
+      onSubmit:(val)=>{
+        playSound();
+        userName = val.trim();
+        if(!userName){ showToast("Digite seu nome."); return; }
+        try { track("quiz_name_user", { user_name: userName }); } catch(e){}
+        autoNext();
+      }
+    });
+  } else if(q.type === "namePartner"){
+    const label = who === "parceira" ? "Nome da parceira" : "Nome do parceiro";
+    renderNameBox({
+      label,
+      placeholder: who === "parceira" ? "Ex.: Ana" : "Ex.: João",
+      onSubmit:(val)=>{
+        playSound();
+        partnerName = val.trim();
+        if(!partnerName){ showToast(`Digite o nome ${who==='parceira'?'da parceira':'do parceiro'}.`); return; }
+        try { track("quiz_name_partner", { partner_name: partnerName, who }); } catch(e){}
+        autoNext();
+      }
+    });
+  } else {
+    addTitles(q.title, q.sub);
+    q.options.forEach(o=>{
+      const pill=document.createElement('div');
+      pill.className="pill";
+      pill.innerHTML=`<span class="dot"></span><b>${o.text}</b>`;
+      pill.addEventListener('click', ()=>{
+        playSound();
+        answers[current]={score:o.score,choice:o.text};
+        try {
+          track("quiz_answer", {
+            step_index: current,
+            question: q.title || "",
+            choice: o.text,
+            score: o.score
+          });
+        } catch(e){}
+        autoNext();
+      });
+      stage.appendChild(pill);
+    });
+  }
+
+  const pct = Math.round((current)/(steps()-1)*100);
+  bar.style.width = Math.max(4,pct)+"%";
+}
+
+function addTitles(t, s){
+  const b=document.createElement('div'); b.className="badge"; b.innerHTML="📋 <span>PERGUNTA</span>"; stage.appendChild(b);
+  if(t){
+    const titleEl=document.createElement('div');
+    titleEl.className="title";
+    titleEl.textContent=t;
+    stage.appendChild(titleEl);
+  }
+  if(s){
+    const hint=document.createElement('div');
+    hint.className="hint";
+    hint.textContent=s;
+    stage.appendChild(hint);
+  }
+}
+function addBadge(){}
+
+function renderNameBox({label,placeholder,onSubmit}){
+  const box=document.createElement('div');
+  box.className="ibox";
+  box.innerHTML=`
+    <label>${label}</label>
+    <input id="itxt" class="itxt" type="text" placeholder="${placeholder}" />
+    <button id="ibtn" class="ibtn">Continuar ▶</button>
+  `;
+  stage.appendChild(box);
+  const itxt=box.querySelector('#itxt'); 
+  const ibtn=box.querySelector('#ibtn');
+  
+  function go(){ 
+    const val = itxt.value.trim();
+    onSubmit(val); 
+    
+    // 👇 salva no log o nome do lead
+    fetch("/track", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        event:"lead_name",
+        name: val,
+        ts: Date.now()
+      })
+    });
+  }
+  
+  ibtn.addEventListener('click', go);
+  itxt.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){ e.preventDefault(); go(); }
+  });
+  setTimeout(()=>itxt.focus(), 50);
+}
+
+
+function autoNext(){ setTimeout(()=>{ current<steps()-1 ? (current++,render()) : showResult(); }, 180); }
+
+/* ===== Resultado ===== */
+function showResult(){
+  let sum=0,max=0;
+  QUESTIONS.forEach((q,i)=>{
+    if(q.type==="who"||q.type==="nameUser"||q.type==="namePartner") return;
+    max += Math.max(...q.options.map(o=>o.score||0));
+    sum += (answers[i]?.score||0);
+  });
+  const pct = Math.round((sum/max)*100);
+  let tag="Baixo", cls="low",
+      text=`<span class="bold-name">${userName||'Você'}</span>, os sinais percebidos com <span class="bold-name">${partnerName||('seu/sua '+who)}</span> estão baixos. Em vez de suposições, converse com <span class="bold-name">${partnerName||('seu/sua '+who)}</span> com exemplos específicos e alinhem expectativas.`;
+  if(pct>=35 && pct<70){
+    tag="Moderado"; cls="mid";
+    text=`<span class="bold-name">${userName||'Você'}</span>, há alguns sinais a observar com <span class="bold-name">${partnerName||('seu/sua '+who)}</span>. Crie espaço para diálogo honesto, definam limites digitais e alinhem expectativas.`;
+  }
+  if(pct>=70){
+    tag="Alto"; cls="high";
+    text=`<span class="bold-name">${userName||'Você'}</span>, os sinais percebidos envolvendo <span class="bold-name">${partnerName||('seu/sua '+who)}</span> estão altos. Antes de decisões impulsivas, busque uma conversa estruturada e, se possível, apoio profissional.`;
+  }
+
+  rezTag.className="tag "+cls; rezTag.textContent=tag; fill.style.width=pct+"%";
+  rezText.innerHTML = text;
+  
+  stage.innerHTML=""; result.style.display="grid"; bar.style.width="100%";
+
+  // tracking de finalização
+  try { track("quiz_finish", { score_pct: pct, score_tag: tag, total_steps: QUESTIONS.length }); } catch(e){}
+  FINISHED = true;
+}
+
+/* ===== Ações finais ===== */
+// Mantido como estava – sem alterar sua lógica
+goSpyBtn.addEventListener('click', ()=>{
+  // (se houver um input "spyNumber", seu código original referenciava; mantive sem criar nada novo)
+  try{
+    const spyNumberInput = document.getElementById('spyNumber');
+    const num = spyNumberInput ? (spyNumberInput.value||"").trim() : "";
+    if(!num){
+      showToast("Digite um número para continuar.");
+    } else {
+      alert("Simulação ativada para número: " + num);
+    }
+  }catch(e){
+    // se não existir input, apenas segue para o link
+  }
+});
+
+document.addEventListener('DOMContentLoaded', render);
+</script>
+</body>
+</html>

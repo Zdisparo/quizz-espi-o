@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Dashboard do Quiz — Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#fff; --text:#111827; --muted:#6b7280; --line:#e5e7eb; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --radius:14px; --shadow:0 12px 24px rgba(0,0,0,.06); --maxw:1100px; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 "Inter",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial}
+  .wrap{max-width:var(--maxw);margin:18px auto;padding:0 16px}
+  .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .logo{width:42px;height:42px;border-radius:10px;background:#111;color:#fff;display:grid;place-items:center;font-weight:900}
+  h1{font-size:1.4rem;margin:0}
+  .muted{color:var(--muted);font-size:.95rem}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  .input,.btn,.select{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .btn{background:#111;color:#fff;font-weight:800;cursor:pointer}
+  .ghost{background:#f3f4f6;color:#111}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;margin-top:12px}
+  .card{grid-column:span 12;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;background:#fff}
+  @media(min-width:860px){ .col-4{grid-column:span 4} .col-8{grid-column:span 8} .col-6{grid-column:span 6} }
+  .kpi{display:flex;align-items:center;justify-content:space-between}
+  .kpi b{font-size:1.6rem}
+  .bar{height:10px;background:#f3f4f6;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+  .fill{height:100%;width:0;background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444);transition:width .4s ease}
+  table{width:100%;border-collapse:collapse}
+  th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left}
+  th{font-weight:900;background:#f8fafc}
+  tr:hover{background:#f9fafb}
+  .pill{display:inline-block;padding:4px 8px;border-radius:999px;font-weight:800;font-size:.8rem}
+  .tag-low{background:#ecfdf5;color:#065f46}.tag-mid{background:#fffbeb;color:#92400e}.tag-high{background:#fef2f2;color:#991b1b}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="logo">DB</div>
+    <div>
+      <h1>Dashboard do Quiz</h1>
+      <div class="muted">Tempo real via <code>/report.json</code></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <input id="search" class="input" placeholder="Buscar (lead_id, pergunta, escolha)"/>
+    <select id="period" class="select">
+      <option value="all">Todo período</option>
+      <option value="24h">Últimas 24h</option>
+      <option value="7d">Últimos 7 dias</option>
+      <option value="30d">Últimos 30 dias</option>
+    </select>
+    <button id="refresh" class="btn">Atualizar</button>
+    <button id="auto" class="btn ghost">Auto (10s): OFF</button>
+    <a class="btn ghost" href="/report.csv">Baixar CSV</a>
+  </div>
+
+  <div class="grid">
+    <div class="card col-4"><div class="kpi"><h3>Leads únicos</h3><b id="kpiLeads">–</b></div></div>
+    <div class="card col-4"><div class="kpi"><h3>Finalizações</h3><b id="kpiFinish">–</b></div></div>
+    <div class="card col-4"><div class="kpi"><h3>Conversão</h3><b id="kpiConv">–</b></div></div>
+
+    <div class="card col-8">
+      <h3 style="margin:0 0 8px">Funil por etapa</h3>
+      <div id="funnel"></div>
+    </div>
+    <div class="card col-4">
+      <h3 style="margin:0 0 8px">Maior abandono</h3>
+      <div class="bar"><div id="abandFill" class="fill"></div></div>
+      <div class="muted" id="abandLabel" style="margin-top:6px">–</div>
+    </div>
+
+    <div class="card col-12">
+      <h3 style="margin:0 0 8px">Eventos</h3>
+      <table id="table"><thead>
+        <tr><th>Data</th><th>Lead</th><th>Evento</th><th>Etapa</th><th>Pergunta</th><th>Escolha</th><th>Score</th><th>Tag</th></tr>
+      </thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+const SRC = "/report.json";
+let RAW=[], AUTO=null;
+
+function within(d, mode){
+  if (mode==="all") return true;
+  const now=Date.now(), map={ "24h":86400000, "7d":604800000, "30d":2592000000 };
+  return (now - d.getTime()) <= (map[mode]||0);
+}
+function pct(n,d){ return d? Math.round(n/d*100) : 0; }
+
+async function fetchData(){
+  const res = await fetch(SRC, { cache:"no-store" });
+  return await res.json();
+}
+
+async function render(){
+  const q = (document.getElementById("search").value||"").toLowerCase();
+  const period = document.getElementById("period").value;
+  RAW = await fetchData();
+
+  const rows = RAW.map(r=>({
+    ts:r.ts, lead_id:r.lead_id, event:r.event, step_index:(r.step_index===""?null:Number(r.step_index)),
+    question:r.question||"", choice:r.choice||"", score:(r.score===""? "": Number(r.score)),
+    score_pct:(r.score_pct===""? "": Number(r.score_pct)), score_tag:r.score_tag||""
+  }))
+  .filter(r=>r.ts && within(new Date(r.ts), period))
+  .filter(r => {
+    const bag=`${r.lead_id} ${r.event} ${r.question} ${r.choice}`.toLowerCase();
+    return !q || bag.includes(q);
+  })
+  .sort((a,b)=> new Date(b.ts) - new Date(a.ts));
+
+  // KPIs
+  const leads = new Set(rows.map(r=>r.lead_id)).size;
+  const finish = rows.filter(r=>r.event==="quiz_finish").length;
+  document.getElementById("kpiLeads").textContent = leads;
+  document.getElementById("kpiFinish").textContent = finish;
+  document.getElementById("kpiConv").textContent = leads? `${pct(finish,leads)}%` : "0%";
+
+  // Funil (step views)
+  const stepViews = {};
+  rows.filter(r=>r.event==="quiz_step_view").forEach(r=>{
+    const i = r.step_index ?? 0;
+    stepViews[i] = (stepViews[i]||0)+1;
+  });
+  const max = Math.max(1, ...Object.values(stepViews));
+  const funnel = document.getElementById("funnel"); funnel.innerHTML="";
+  Object.keys(stepViews).map(Number).sort((a,b)=>a-b).forEach(i=>{
+    const val = stepViews[i];
+    const el = document.createElement("div");
+    el.style.margin = "6px 0";
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="min-width:110px;font-weight:800">Etapa ${i+1}</div>
+        <div class="bar" style="flex:1"><div class="fill" style="width:${(val/max)*100}%"></div></div>
+        <div style="min-width:48px;text-align:right;font-weight:800">${val}</div>
+      </div>`;
+    funnel.appendChild(el);
+  });
+
+  // Abandono (lead sem finish → último step_view)
+  const finished = new Set(rows.filter(r=>r.event==="quiz_finish").map(r=>r.lead_id));
+  const lastStepByLead = {};
+  rows.filter(r=>r.event==="quiz_step_view").forEach(r=>{
+    const i = r.step_index ?? 0;
+    lastStepByLead[r.lead_id] = Math.max(lastStepByLead[r.lead_id]??0, i);
+  });
+  const aband = {};
+  Object.entries(lastStepByLead).forEach(([lead,i])=>{
+    if(!finished.has(lead)) aband[i] = (aband[i]||0)+1;
+  });
+  const worstStep = Object.keys(aband).map(Number).sort((a,b)=>aband[b]-aband[a])[0];
+  const worstVal = worstStep!=null ? aband[worstStep] : 0;
+  const worstPct = leads? Math.round(worstVal/leads*100) : 0;
+  document.getElementById("abandFill").style.width = worstPct+"%";
+  document.getElementById("abandLabel").textContent = worstStep!=null
+    ? `Maior abandono na etapa ${worstStep+1} — ${worstVal} leads (${worstPct}%)`
+    : "Sem abandono detectado";
+
+  // Tabela
+  const tbody = document.querySelector("#table tbody"); tbody.innerHTML="";
+  rows.slice(0,500).forEach(r=>{
+    const d = new Date(r.ts); const tag = r.score_tag;
+    const cls = tag==="Alto" ? "tag-high" : tag==="Moderado" ? "tag-mid" : tag ? "tag-low" : "";
+    const pill = tag ? `<span class="pill ${cls}">${tag}</span>` : "";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${d.toLocaleString()}</td>
+      <td>${r.lead_id}</td>
+      <td>${r.event}</td>
+      <td>${r.step_index==null? "": (r.step_index+1)}</td>
+      <td>${r.question}</td>
+      <td>${r.choice}</td>
+      <td>${r.score=== ""? "": r.score}</td>
+      <td>${pill}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById("refresh").addEventListener("click", render);
+document.getElementById("search").addEventListener("input", ()=>{ clearTimeout(window.__db); window.__db=setTimeout(render,250); });
+document.getElementById("period").addEventListener("change", render);
+document.getElementById("auto").addEventListener("click", (e)=>{
+  if (AUTO){ clearInterval(AUTO); AUTO=null; e.target.textContent="Auto (10s): OFF"; e.target.classList.add("ghost"); }
+  else { render(); AUTO=setInterval(render,10000); e.target.textContent="Auto (10s): ON"; e.target.classList.remove("ghost"); }
+});
+
+render();
+</script>
+</body>
+</html>
