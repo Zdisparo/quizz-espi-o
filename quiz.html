@@ -3,19 +3,32 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Quiz — Sinais no Relacionamento (ajustado)</title>
+<title>Quiz + Simulação — Sinais & WhatsApp Clone</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
+  /* =========================
+     ESTILOS GERAIS / QUIZ
+  ========================== */
   :root{
     --content-max: 640px; --card-max: 520px; --img-min: 160px; --img-max: 220px;
     --bg:#ffffff; --text:#111827; --muted:#6b7280; --line:#e5e7eb;
     --accent1:#22c55e; --accent2:#0ea5e9; --shadow:0 10px 24px rgba(0,0,0,.06); --radius:14px;
+
+    /* cores do app clone reaproveitadas abaixo */
+    --primary:#25D366; --primary-dark:#128C7E; --bg2:#f5f5f1; --white:#fff;
+    --muted2:#7f8c8d; --text2:#1f2a32; --danger:#ff3b30; --warn:#ffcc00;
+    --success:#34c759; --soft:#edf2f4; --line2:#e6e8ea; --chip:#1aaa65;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 "Inter",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif}
-  .wrap{max-width:var(--content-max);margin:22px auto;padding:0 14px}
+  body{margin:0;background:#fff;color:var(--text);font:15px/1.5 "Inter",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif}
 
+  /* SISTEMA DE PÁGINAS */
+  .page{display:none}
+  .page.active{display:block}
+
+  /* ===== QUIZ ===== */
+  .wrap{max-width:var(--content-max);margin:22px auto;padding:0 14px}
   .brand{display:flex;flex-direction:column;align-items:center;gap:10px}
   .logo{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;background:#111;color:#fff;font-weight:900;box-shadow:var(--shadow);font-size:14px}
   .progress{width:100%;height:6px;border-radius:999px;background:#f3f4f6;margin:12px 0 10px;overflow:hidden;border:1px solid var(--line)}
@@ -27,43 +40,33 @@
 
   .stage{display:grid;gap:10px;place-items:center}
 
-  /* títulos das perguntas – mais evidentes */
   .badge{
     display:inline-flex;align-items:center;gap:8px;background:#eef2ff;color:#1e3a8a;border:1px solid #c7d2fe;
     padding:6px 10px;border-radius:999px;font-weight:900;font-size:.8rem;margin:6px auto 2px
   }
   .title{font-size:1.35rem;font-weight:900;text-align:center;margin:4px 0 2px}
-  .hint{color:#111827;text-align:center;margin:0 0 10px;font-size:1rem;font-weight:600} /* agora PRETO e com destaque */
+  .hint{color:#111827;text-align:center;margin:0 0 10px;font-size:1rem;font-weight:600}
 
-  /* cards */
   .qcard{width:100%;max-width:var(--card-max);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;background:#fff;cursor:pointer;transition:transform .08s ease}
   .qcard:hover{transform:translateY(-1px)}
-  .qimg {
-    width: 100%;
-    height: clamp(var(--img-min), 22vw, var(--img-max));
-    object-fit: contain;
-    background: #ffffff;
-    padding: 12px;
-  }
+  .qimg{width:100%;height:clamp(var(--img-min), 22vw, var(--img-max));object-fit:contain;background:#ffffff;padding:12px}
+
   .qfoot{background:#0b1220;color:#f9fafb;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
   .qtitle{font-weight:900;font-size:.98rem}
   .qnote{opacity:.85;font-size:.85rem}
   .radio{width:18px;height:18px;border-radius:50%;border:2px solid #cbd5e1;background:#0b1220}
 
-  /* pills */
   .pill{width:100%;max-width:var(--card-max);display:flex;align-items:center;gap:10px;border:2px solid #111827;border-radius:12px;padding:12px 14px;background:#fff;box-shadow:var(--shadow);cursor:pointer}
   .pill:hover{transform:translateY(-1px)}
   .dot{width:10px;height:10px;border-radius:50%;background:#111827}
   .pill b{font-weight:900;font-size:1rem}
 
-  /* inputs de nome */
   .ibox{width:100%;max-width:var(--card-max);display:grid;gap:8px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:var(--shadow);padding:14px}
   .ibox label{font-weight:900}
   .itxt{width:100%;border:2px solid #111827;border-radius:10px;padding:12px 12px;font-size:1rem}
   .ibtn{justify-self:end;border:0;border-radius:10px;padding:10px 14px;background:#111827;color:#fff;font-weight:900;cursor:pointer}
   .ibtn:disabled{opacity:.5;cursor:not-allowed}
 
-  /* resultado */
   .result{display:none;gap:10px}
   .rez{border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;background:#fff}
   .rez h3{margin:0 0 6px;font-size:1.05rem}
@@ -74,7 +77,7 @@
   .mid{background:#fffbeb;color:#92400e}
   .high{background:#fef2f2;color:#991b1b}
 
-  .cta-box{margin-top:20px;text-align:center}
+  .cta-box{margin-top:12px;text-align:center}
   .cta-btn {
     display:inline-block;
     padding:12px 20px;
@@ -85,22 +88,119 @@
     border-radius:10px;
     text-decoration:none;
     animation: pulse 1.5s infinite;
-    margin-top:12px;
+    margin-top:10px;
   }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(14,165,233, 0.7); }
     70% { box-shadow: 0 0 0 15px rgba(14,165,233, 0); }
     100% { box-shadow: 0 0 0 0 rgba(14,165,233, 0); }
   }
-
   .bold-name { font-weight: 900; color: #111827; }
   .small-note { color: var(--muted); margin-top:6px; font-size:.9rem; }
-  
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;background:#111827;color:#fff;padding:8px 12px;border-radius:10px;display:none;box-shadow:var(--shadow);font-size:.92rem}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;background:#111827;color:#fff;padding:8px 12px;border-radius:10px;display:none;box-shadow:var(--shadow);font-size:.92rem;z-index:10000}
   .toast.show{display:block}
+
+  /* =========================
+     ESTILOS APP CLONE (originais)
+  ========================== */
+  body.appclone{background:var(--bg2);color:var(--text2)}
+  .container{width:100%;max-width:980px;margin:20px auto;padding:0 16px}
+  .card{background:var(--white);border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.07);padding:22px;margin-bottom:18px}
+  h1{font-size:1.6rem;margin-bottom:8px}
+  p.lead{color:var(--muted2);margin-bottom:18px}
+  .form-row{display:flex;gap:12px;align-items:center}
+  .phone-input{flex:1;padding:12px 14px;border:1px solid #ddd;border-radius:10px;font-size:1rem;outline:none}
+  .phone-input:focus{box-shadow:0 0 0 3px rgba(37,211,102,.12);border-color:var(--primary)}
+  .btn{background:var(--primary);color:#fff;border:0;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:10px}
+  .btn[disabled]{opacity:.6;cursor:not-allowed}
+  .btn-danger{background:var(--danger);color:#fff;border:none;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer}
+  .proofs{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+  .proof{background:#dcf8c6;padding:10px;border-radius:10px;display:flex;gap:10px;align-items:center}
+  .proof svg{width:18px;height:18px;fill:var(--primary)}
+  .loading-wrap{display:none}
+  .spinner{width:56px;height:56px;border-radius:50%;border:6px solid rgba(37,211,102,.2);border-top-color:var(--primary);animation:spin 1s linear infinite;margin:0 auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .progress{height:10px;background:#eee;border-radius:999px;overflow:hidden}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--primary),#0a8b63);width:0%;transition:width .4s ease}
+  .log{background:#f6f7f8;border-radius:8px;padding:12px;height:180px;overflow:auto;font-family:monospace;margin-top:12px}
+  .log-line{opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;margin-bottom:8px}
+  .log-line.visible{opacity:1;transform:none}
+  .profile{display:none;margin-top:12px}
+  .profile.visible{display:flex;flex-direction:column;gap:12px}
+  .profile .head{display:flex;gap:12px;align-items:center}
+  .profile img{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--primary);background:#ddd}
+  .detail{background:#fff;padding:12px;border-radius:10px}
+  .confirm-bar{display:none;margin-top:12px;padding:10px;border:1px dashed #dde;border-radius:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+  /* Página WhatsApp (mobile) */
+  .home-wrap{min-height:100dvh;display:flex;flex-direction:column;position:relative}
+  .util-top{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border-bottom:1px solid var(--line2)}
+  .util-top .avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #eef3f4;background:#ddd}
+  .pill{margin-left:auto;background:#2fd070;color:#fff;border-radius:12px;padding:8px 12px;font-weight:800;line-height:1.1;box-shadow:0 2px 0 rgba(0,0,0,.08);cursor:pointer;animation:pulse 2s infinite}
+  @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
+  .appbar{background:#fff;padding:10px 14px;border-bottom:1px solid var(--line2);display:flex;align-items:center}
+  .appbar h2{font-size:1.4rem;letter-spacing:.2px}
+  .appbar .actions{margin-left:auto;display:flex;gap:14px;color:#7c8b93}
+  .gate{cursor:pointer}
+  .searchbar{background:#fff;padding:10px 14px;border-bottom:1px solid var(--line2)}
+  .search{background:#f1f3f4;border-radius:999px;padding:12px 14px;display:flex;gap:10px;align-items:center;color:#94a0a7}
+  .search input{border:none;background:transparent;outline:none;flex:1;color:#54606a}
+  .list{background:#fff;flex:1;overflow:auto}
+  .row-chat{display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line2);align-items:center}
+  .pic{width:52px;height:52px;border-radius:50%;object-fit:cover;filter:blur(2px) saturate(.9) brightness(.92)}
+  .meta{flex:1;min-width:0}
+  .name{font-weight:800}
+  .preview{font-size:.95rem;color:#748089;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .righty{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:52px}
+  .time{font-size:.85rem;color:#7e8a92}
+  .badge{background:#25d366;color:#fff;border-radius:999px;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:800;padding:0 6px;font-size:.8rem}
+  .bottom-nav{background:#fff;border-top:1px solid var(--line2);display:flex;justify-content:space-around;padding:8px 0}
+  .bn-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:#64717a;font-weight:600;font-size:.9rem}
+  .bn-item.active{color:#1f9c63}
+  .bn-badge{position:absolute;margin-left:28px;margin-top:-10px;background:#1f9c63;color:#fff;border-radius:999px;padding:2px 8px;font-weight:800;font-size:.8rem}
+  .fab{position:fixed;right:16px;bottom:80px;background:#1f9c63;color:#fff;width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 20px rgba(0,0,0,.12);font-size:1.6rem;cursor:pointer}
+  .toast2{position:fixed;left:50%;transform:translateX(-50%);top:70px;background:#2d2f31;color:#fff;border-radius:6px;padding:10px 14px;display:none;align-items:center;gap:12px;z-index:9}
+  .toast2.show{display:flex}
+  @media (min-width:769px){
+    .home-wrap{max-width:520px;margin:0 auto;border-left:1px solid var(--line2);border-right:1px solid var(--line2)}
+  }
+  .muted{color:#95a1a8}
+  .row{display:flex;align-items:center;gap:10px}
+  .success{color:#34c759}
+
+  /* nome embaixo do avatar no topo do chat */
+  .top-name{font-size:.9rem;color:#34414a;font-weight:700}
+
+  /* ======= Anti Screenshot (chat) ======= */
+  .shot-shield{
+    position:absolute; inset:0; background:#000; opacity:0; pointer-events:none; transition:opacity .15s ease; z-index:50;
+  }
+  .shot-shield.show{ opacity:.92; pointer-events:auto; }
+
+  /* Ocultar tudo ao imprimir (reduz capturas via print) */
+  @media print {
+    body { display:none !important; }
+  }
+
+  /* ===== NOVO: blur no fundo do chat quando checkout aberto ===== */
+  .home-wrap.blurred{
+    filter: blur(6px) saturate(0.9);
+    transition: filter .2s ease;
+    pointer-events: none;
+  }
+
+  /* ===== NOVO: esconder botão fechar quando forçado ===== */
+  .checkout-forced #checkoutClose {
+    display: none !important;
+  }
 </style>
 </head>
 <body>
+
+<!-- =========================
+=          PÁGINA: QUIZ      =
+========================== -->
+<section id="page-quiz" class="page active">
   <div class="wrap">
     <div class="brand">
       <div class="logo">QZ</div>
@@ -119,55 +219,338 @@
         <div class="meter"><div id="fill" class="fill"></div></div>
         <p id="rezText" style="margin:8px 0 0"></p>
       </div>
-      <!-- Nova chamada pra ação -->
+
+      <!-- CTA do Quiz: levar para a simulação -->
       <div class="rez cta-box">
-        <h3>Acesso Grátis ao Nosso App Espião</h3>
-        <p>Digite **o número de WhatsApp** que deseja monitorar e comece a clonar conversas escondidas em tempo real. Simulação — nada disso é real!</p>
-        <br>
-        <a href="https://espi-o.onrender.com" class="cta-btn" id="goSpy">👉 Ir ao App Espião</a>
+        <h3>Quer ver como ficaria uma investigação?</h3>
+        <p class="small-note">Simulação educativa e lúdica — nada aqui é real.</p>
+        <a href="#" class="cta-btn" id="goToSimulation">👉 Ir para Simulação</a>
       </div>
     </div>
   </div>
 
   <div id="toast" class="toast">Preencha para continuar.</div>
 
-  <!-- Áudio do quiz -->
-  <audio id="quizSound" src="quiz.mp3" preload="auto"></audio>
+  <!-- Som do Quiz -->
+  <audio id="quizAudio" src="quiz.mp3" preload="auto"></audio>
+</section>
+
+<!-- =========================
+=    PÁGINA: FLOW (CLONE)    =
+========================== -->
+<section id="page-flow" class="page">
+  <div class="container">
+    <!-- STEP 1 -->
+    <section id="step-collect" class="card">
+      <h1>Parabéns — Acesso Gratuito</h1>
+      <p class="lead">Insira o número abaixo (simulação). Em seguida iniciamos a "busca" e mostramos o perfil.</p>
+
+      <div class="form-row">
+        <input id="phoneInput" class="phone-input" type="tel" placeholder="(99) 99999-9999" maxlength="15" />
+        <button id="cloneButton" class="btn" disabled>Clonar WhatsApp Agora</button>
+      </div>
+
+      <div class="proofs" id="simProofs">
+        <div class="proof"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8Z"/></svg>
+          <strong id="proofText1">(43) 96645-XX47 de Paraná está sendo espionado neste momento...</strong></div>
+        <div class="proof"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8Z"/></svg>
+          <strong id="proofText2">(75) 91543-XX66 de Ilhéus teve as conversas expostas!</strong></div>
+      </div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section id="step-loading" class="card loading-wrap" aria-hidden="true">
+      <h1>Processando Acesso ao WhatsApp</h1>
+      <p class="lead">Aguarde enquanto conectamos aos servidores e preparamos seu acesso.</p>
+
+      <div class="row" style="flex-wrap:wrap">
+        <div style="flex:0 0 120px;text-align:center">
+          <div class="spinner" id="spinner"></div>
+        </div>
+        <div style="flex:1;min-width:220px">
+          <div class="progress"><i id="progressFill"></i></div>
+          <div class="muted" id="progressText" style="margin-top:8px">Conectando aos servidores... 0%</div>
+          <div class="log" id="logContainer" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div id="profileCard" class="profile" style="margin-top:18px">
+        <div class="head">
+          <img id="imgProfile" src="https://i.postimg.cc/gcNd6QBM/img1.jpg" alt="Foto de perfil">
+          <div>
+            <div style="font-weight:800" id="profileName">Perfil WhatsApp</div>
+            <div class="muted" id="numeroPerfil">(XX) XXXXX-XXXX</div>
+            <!-- Nome do parceiro(a) vindo do Quiz -->
+            <div class="muted" id="partnerFromQuizWrap" style="margin-top:4px;display:none">
+              Nome do(a) parceiro(a): <strong id="partnerFromQuiz"></strong>
+            </div>
+            <div class="row success" style="margin-top:6px"><span style="width:9px;height:9px;background:var(--success);border-radius:50%"></span> Online recentemente</div>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="row" style="margin-bottom:8px"><span class="muted">Cidade de última conexão</span></div>
+          <div id="userCity" style="font-weight:700;margin-bottom:16px">Fortaleza</div>
+          <div class="row"><span class="muted">Status do dispositivo</span></div>
+          <div style="font-weight:700">Ativo</div>
+
+          <!-- CONFIRM BAR (mostrada somente após a busca terminar) -->
+          <div id="confirmBar" class="confirm-bar">
+            <div class="row" style="flex:1;min-width:220px">
+              <span id="confirmText" style="font-weight:700">É essa pessoa?</span>
+            </div>
+            <div class="row" style="flex-wrap:wrap;gap:8px">
+              <button class="btn" id="btnYes">Sim</button>
+              <button class="btn-danger" id="btnNo">Não, tentar sem 9</button>
+              <button class="btn" id="accessReportBtn">Acessar Relatório</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</section>
+
+<!-- =========================
+=   PÁGINA: CHAT (CLONE)     =
+========================== -->
+<section id="page-chat" class="page">
+  <div class="home-wrap" id="chatHome">
+    <!-- overlay anti print -->
+    <div id="shotShield" class="shot-shield" aria-hidden="true"></div>
+
+    <!-- topo com avatar + pílula 29,97 -->
+    <div class="util-top">
+      <img id="chatTopAvatar" class="avatar" src="https://i.postimg.cc/gcNd1QBM/img1.jpg" alt="avatar topo">
+      <div>
+        <div id="chatTopName" class="top-name"></div>
+      </div>
+      <div id="upgradePill" class="pill" style="margin-left:auto">Liberar acesso completo<br>por R$ 29,97</div>
+    </div>
+
+    <!-- Appbar -->
+    <div class="appbar">
+      <h2 class="gate">WhatsApp</h2>
+      <div class="actions">
+        <span class="gate">📷</span><span class="gate">⚙️</span><span class="gate">⋮</span>
+      </div>
+    </div>
+
+    <!-- Busca -->
+    <div class="searchbar">
+      <div class="search gate">
+        <span class="icon">🔎</span>
+        <input placeholder="Pergunte à Meta AI ou pesquise" readonly>
+      </div>
+    </div>
+
+    <!-- Lista de conversas -->
+    <div id="chatList" class="list">
+      <div class="row-chat gate">
+        <img class="pic" src="sarinha.png" alt="">
+        <div class="meta">
+          <div class="name">Sarinha</div>
+          <div class="preview">Oi gostoso, tudo bem, posso te fazer um...</div>
+        </div>
+        <div class="righty">
+          <div class="time">20:04</div>
+          <div class="badge">1</div>
+        </div>
+      </div>
+
+      <div class="row-chat gate">
+        <img class="pic" src="amanda.png" alt="">
+        <div class="meta">
+          <div class="name">Amanda Centro</div>
+          <div class="preview">🎥 Vídeo</div>
+        </div>
+        <div class="righty">
+          <div class="time">16:50</div>
+          <div class="badge">2</div>
+        </div>
+      </div>
+
+      <div class="row-chat gate">
+        <img class="pic" src="julia.png" alt="">
+        <div class="meta">
+          <div class="name">Julia fatalmodel</div>
+          <div class="preview">Eai, vai querer hoje denovo safado...?</div>
+        </div>
+        <div class="righty">
+          <div class="time">12:39</div>
+          <div class="badge">1</div>
+        </div>
+      </div>
+
+      <div class="row-chat gate">
+        <img class="pic" src="alice.png" alt="">
+        <div class="meta">
+          <div class="name">Liberar Acesso Completo</div>
+          <div class="preview">Sua mulher sabe de alguma coisa?...</div>
+        </div>
+        <div class="righty">
+          <div class="time">19:01</div>
+          <div class="badge">5</div>
+        </div>
+      </div>
+
+      <div class="row-chat gate">
+        <img class="pic" src="carla.png" alt="">
+        <div class="meta">
+          <div class="name">Liberar Acesso Completo</div>
+          <div class="preview">Oi, to com sdds kkk ...</div>
+        </div>
+        <div class="righty">
+          <div class="time">22:53</div>
+          <div class="badge">13</div>
+        </div>
+      </div>
+
+      <div class="row-chat gate">
+        <img class="pic" src="suzy.png" alt="">
+        <div class="meta">
+          <div class="name">Liberar Acesso Completo</div>
+          <div class="preview">Vc é um safado sabia, adorooo kkkk!</div>
+        </div>
+        <div class="righty">
+          <div class="time">15/09/2025</div>
+          <div class="badge">1</div>
+        </div>
+      </div>
+
+      <div class="row-chat gate">
+        <img class="pic" src="ale.png" alt="">
+        <div class="meta">
+          <div class="name">Liberar Acesso Completo</div>
+          <div class="preview">Que dia agnte se ve? n quer mais e...</div>
+        </div>
+        <div class="righty">
+          <div class="time">21:11</div>
+          <div class="badge">8</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAB -->
+    <div class="fab gate">＋</div>
+
+    <!-- Bottom nav -->
+    <div class="bottom-nav">
+      <div class="bn-item active gate">
+        <div style="position:relative;">
+          💬 <span class="bn-badge">32</span>
+        </div>
+        <span>Conversas</span>
+      </div>
+      <div class="bn-item gate">📰<span>Atualizações</span></div>
+      <div class="bn-item gate">👥<span>Comunidades</span></div>
+      <div class="bn-item gate">📞<span>Ligações</span></div>
+    </div>
+  </div>
+
+  <!-- toast -->
+  <div id="toast2" class="toast2"><span>⚠</span> <strong>Novas mensagens encontradas...</strong></div>
+
+  <!-- Modal paywall -->
+  <div id="payModal" class="pay-modal" aria-hidden="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:100">
+    <div class="pay-box" style="background:#fff;width:calc(100% - 40px);max-width:420px;border-radius:14px;padding:18px;box-shadow:0 12px 30px rgba(0,0,0,.18);position:relative">
+      <div class="pay-title" style="font-weight:900;font-size:1.2rem;margin-bottom:8px">Liberar acesso completo</div>
+      <div class="pay-sub" style="color:#6d7a82;margin-bottom:14px">Para abrir conversas e usar as funções, libere o acesso completo.</div>
+      <div class="pay-actions" style="display:flex;gap:10px;flex-wrap:wrap">
+        <button id="btnUnlockNow" class="btn">Liberar agora — R$ 29,97</button>
+        <button id="btnLater" class="btn-outline" style="background:#eef3f4;color:#2a2f33;border:0;padding:12px 16px;border-radius:10px;font-weight:800">Agora não</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOM do chat -->
+  <audio id="msgSound" src="audiozap.mp3" preload="auto"></audio>
+</section>
+
+<!-- Modal de dica (após a busca) -->
+<div id="hintModal" class="hint-modal" aria-hidden="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:200">
+  <div class="hint-box" style="background:#fff;width:calc(100% - 40px);max-width:520px;border-radius:14px;padding:18px;box-shadow:0 12px 30px rgba(0,0,0,.18)">
+    <div class="hint-title" style="font-weight:900;font-size:1.1rem;margin-bottom:8px">Atenção</div>
+    <div class="hint-text" style="color:#44525c;margin-bottom:14px;line-height:1.45">
+      Caso a foto não aparecer é pq a pessoa deixa privado, mas se o contato estiver correto é só continuar,
+      mas antes tente com a opção de buscar sem o 9 adicionado.
+    </div>
+    <div class="row" style="justify-content:flex-end">
+      <button id="hintOkBtn" class="btn">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay de conexão ao trocar para os chats -->
+<div id="connectOverlay" class="connect-overlay" aria-hidden="true" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.92);align-items:center;justify-content:center;z-index:250">
+  <div class="connect-box" style="background:#fff;border:1px solid var(--line2);border-radius:14px;padding:22px;box-shadow:0 14px 38px rgba(0,0,0,.18);text-align:center;width:calc(100% - 64px);max-width:380px">
+    <div class="connect-spinner" style="width:56px;height:56px;border-radius:50%;border:6px solid rgba(37,211,102,.2);border-top-color:var(--primary);animation:spin 1s linear infinite;margin:0 auto 12px"></div>
+    <div class="connect-title" style="font-weight:900;margin-bottom:6px">Conectando à conta WhatsApp</div>
+    <div class="connect-sub" style="color:#6b7880">Estabelecendo sessão segura<span class="connect-dots"></span></div>
+  </div>
+</div>
+
+<!-- ======== MODAL DE CHECKOUT (IFRAME) ======== -->
+<div id="checkoutModal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:99999;padding:16px">
+  <div style="width:min(920px,96vw);height:min(86vh,740px);background:#fff;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 28px 80px rgba(0,0,0,.45)">
+    <button id="checkoutClose" aria-label="Fechar" style="position:absolute;top:10px;right:10px;z-index:2;border:0;cursor:pointer;background:#0f1720;color:#fff;font-weight:800;border-radius:12px;padding:8px 12px">
+      Fechar ✕
+    </button>
+    <iframe id="checkoutFrame" title="Checkout" src="about:blank" referrerpolicy="no-referrer" style="width:100%;height:100%;border:0"></iframe>
+  </div>
+</div>
 
 <script>
-/* ===== Tracking base (flat backend /track) ===== */
-const TRACK_URL = "/track";
-const LEAD_ID = (() => {
-  try{
-    let id = localStorage.getItem("lead_id");
-    if (!id) { id = (crypto?.randomUUID?.() || Math.random().toString(36).slice(2)) + "-" + Date.now(); localStorage.setItem("lead_id", id); }
-    return id;
-  }catch(e){ return Math.random().toString(36).slice(2)+"-"+Date.now(); }
-})();
-let FINISHED = false;
-function sendBeaconJSON(url, data) {
-  try {
-    const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-    if (navigator.sendBeacon) return navigator.sendBeacon(url, blob);
-  } catch(e){}
-  fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(data) }).catch(()=>{});
-}
-function track(eventName, payload={}) {
-  const base = { lead_id: LEAD_ID, event: eventName, ts: new Date().toISOString(), href: location.href, ua: navigator.userAgent };
-  sendBeaconJSON(TRACK_URL, { ...base, ...payload });
-}
-window.addEventListener("beforeunload", () => {
-  if (!FINISHED) track("quiz_abandon", { step_index: current, step_total: (typeof QUESTIONS!=="undefined"? QUESTIONS.length : null) });
-});
-
-/* ===== Estado ===== */
+/* =========================
+   ESTADO GLOBAL COMPARTILHADO
+========================= */
 let current = 0;
 let answers = {};
 let who = "parceiro(a)";
 let userName = "";
 let partnerName = "";
 
-/* ===== DOM ===== */
+/* ===== TRACK (NORMALIZADO P/ SERVER/DASHBOARD) ===== */
+const TRACK_URL = "/track";
+
+function getLeadId(){
+  const k = "lead_id";
+  let v = localStorage.getItem(k);
+  if (!v) {
+    v = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
+    localStorage.setItem(k, v);
+  }
+  return v;
+}
+function track(event, extra = {}){
+  try{
+    const payload = {
+      ts: new Date().toISOString(),
+      lead_id: getLeadId(),
+      event,
+      step_index: extra.step_index ?? "",
+      question:   extra.question   || "",
+      choice:     extra.choice     || "",
+      score:      extra.score      ?? "",
+      score_pct:  extra.score_pct  ?? "",
+      score_tag:  extra.score_tag  || "",
+      elapsed_ms: extra.elapsed_ms ?? "",
+      href: location.href,
+      ua: navigator.userAgent
+    };
+    const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+    if (!navigator.sendBeacon || !navigator.sendBeacon(TRACK_URL, blob)) {
+      fetch(TRACK_URL, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(payload) });
+    }
+  }catch(_){}
+}
+// TRACK: app aberto
+document.addEventListener('DOMContentLoaded', ()=>{ track('app_open'); });
+
+/* ===== QUIZ DOM ===== */
 const stage = document.getElementById('stage');
 const bar = document.getElementById('bar');
 const result = document.getElementById('result');
@@ -175,32 +558,20 @@ const rezTag = document.getElementById('rezTag');
 const rezText = document.getElementById('rezText');
 const fill = document.getElementById('fill');
 const toast = document.getElementById('toast');
-const goSpyBtn = document.getElementById('goSpy');
+const quizAudio = document.getElementById('quizAudio');
 
-/* ===== Som ===== */
-const quizSound = document.getElementById('quizSound');
-function playSound(){
-  try { if(quizSound){ quizSound.currentTime = 0; quizSound.play().catch(()=>{}); } } catch(e){}
+function playQuizDing(){
+  try { quizAudio.currentTime = 0; quizAudio.play().catch(()=>{}); } catch(e) {}
 }
-
 function showToast(m){ toast.textContent=m; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1200); }
 
-/* ===== Perguntas =====
-   Ordem: 0 who → 1 nameUser → 2 namePartner → 3..12 perguntas */
+/* ===== Perguntas QUIZ ===== */
 const QUESTIONS = [
   {
     type:"who",
     options:[
-      { 
-        id:"parceiro", 
-        img:"https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2642.svg", 
-        label:"Quero avaliar sinais no meu parceiro (marido/namorado)"
-      },
-      { 
-        id:"parceira", 
-        img:"https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2640.svg", 
-        label:"Quero avaliar sinais na minha parceira (esposa/namorada)"
-      }
+      { id:"parceiro", img:"https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2642.svg", label:"Quero avaliar sinais no meu parceiro (marido/namorado)" },
+      { id:"parceira", img:"https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2640.svg", label:"Quero avaliar sinais na minha parceira (esposa/namorada)" }
     ]
   },
   { type:"nameUser" },
@@ -234,7 +605,7 @@ const QUESTIONS = [
   },
   {
     title: "Toda pergunta simples vira interrogatório?",
-    sub: "Basta você perguntar algo banal e já vem uma reação defensiva. ‘Por que isso agora?’ ‘Tá desconfiando de mim?’ Como se a culpa fosse sua por perguntar.",
+    sub: "Basta você perguntar algo banal e já vem uma reação defensiva. 'Por que isso agora?' 'Tá desconfiando de mim?' Como se a culpa fosse sua por perguntar.",
     options: [
       { score: 2, text: "🛡️ Com frequência" },
       { score: 1, text: "⚠️ Às vezes" },
@@ -279,7 +650,7 @@ const QUESTIONS = [
   },
   {
     title: "Planos cancelados, promessas quebradas e sempre uma desculpa pronta?",
-    sub: "Do nada, tudo vira ‘imprevisto’. Mas o que antes era prioridade, agora parece incômodo. Só sobrou você segurando a agenda vazia e o coração cheio de dúvida.",
+    sub: "Do nada, tudo vira 'imprevisto'. Mas o que antes era prioridade, agora parece incômodo. Só sobrou você segurando a agenda vazia e o coração cheio de dúvida.",
     options: [
       { score: 2, text: "❌ Acontece direto" },
       { score: 1, text: "🔄 Ocasionalmente" },
@@ -289,98 +660,6 @@ const QUESTIONS = [
 ];
 
 function steps(){ return QUESTIONS.length; }
-
-/* ===== Render ===== */
-function render(){
-  stage.innerHTML = "";
-  result.style.display = "none";
-
-  const q = QUESTIONS[current];
-
-  // evento de visualização de etapa
-  try {
-    track("quiz_step_view", { step_index: current, step_total: QUESTIONS.length, type: (q.type || "question") });
-  } catch(e){}
-
-  // badge + títulos
-  if(!q.type || q.type === "default"){
-    addBadge();
-  }
-
-  if(q.type === "who"){
-    addTitles("Selecione sobre quem você tem dúvidas:", "Escolha uma opção abaixo");
-    q.options.forEach(o=>{
-      const card=document.createElement('div');
-      card.className="qcard"; card.tabIndex=0;
-      card.innerHTML=`
-        <img class="qimg" src="${o.img}" alt="${o.label}" loading="lazy"/>
-        <div class="qfoot">
-          <div>
-            <div class="qtitle">${o.label}</div>
-            <div class="qnote">${o.note||""}</div>
-          </div>
-          <div class="radio"></div>
-        </div>`;
-      card.addEventListener('click', ()=>{
-        playSound();
-        who = o.id === "parceira" ? "parceira" : "parceiro";
-        answers[current]={score:0,choice:o.id};
-        try { track("quiz_select_target", { choice: o.id }); } catch(e){}
-        autoNext();
-      });
-      stage.appendChild(card);
-    });
-  } else if(q.type === "nameUser"){
-    renderNameBox({
-      label:"Seu nome",
-      placeholder:"Digite seu nome",
-      onSubmit:(val)=>{
-        playSound();
-        userName = val.trim();
-        if(!userName){ showToast("Digite seu nome."); return; }
-        try { track("quiz_name_user", { user_name: userName }); } catch(e){}
-        autoNext();
-      }
-    });
-  } else if(q.type === "namePartner"){
-    const label = who === "parceira" ? "Nome da parceira" : "Nome do parceiro";
-    renderNameBox({
-      label,
-      placeholder: who === "parceira" ? "Ex.: Ana" : "Ex.: João",
-      onSubmit:(val)=>{
-        playSound();
-        partnerName = val.trim();
-        if(!partnerName){ showToast(`Digite o nome ${who==='parceira'?'da parceira':'do parceiro'}.`); return; }
-        try { track("quiz_name_partner", { partner_name: partnerName, who }); } catch(e){}
-        autoNext();
-      }
-    });
-  } else {
-    addTitles(q.title, q.sub);
-    q.options.forEach(o=>{
-      const pill=document.createElement('div');
-      pill.className="pill";
-      pill.innerHTML=`<span class="dot"></span><b>${o.text}</b>`;
-      pill.addEventListener('click', ()=>{
-        playSound();
-        answers[current]={score:o.score,choice:o.text};
-        try {
-          track("quiz_answer", {
-            step_index: current,
-            question: q.title || "",
-            choice: o.text,
-            score: o.score
-          });
-        } catch(e){}
-        autoNext();
-      });
-      stage.appendChild(pill);
-    });
-  }
-
-  const pct = Math.round((current)/(steps()-1)*100);
-  bar.style.width = Math.max(4,pct)+"%";
-}
 
 function addTitles(t, s){
   const b=document.createElement('div'); b.className="badge"; b.innerHTML="📋 <span>PERGUNTA</span>"; stage.appendChild(b);
@@ -408,36 +687,100 @@ function renderNameBox({label,placeholder,onSubmit}){
     <button id="ibtn" class="ibtn">Continuar ▶</button>
   `;
   stage.appendChild(box);
-  const itxt=box.querySelector('#itxt'); 
-  const ibtn=box.querySelector('#ibtn');
-  
-  function go(){ 
-    const val = itxt.value.trim();
-    onSubmit(val); 
-    
-    // 👇 salva no log o nome do lead
-    fetch("/track", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        event:"lead_name",
-        name: val,
-        ts: Date.now()
-      })
-    });
-  }
-  
+  const itxt = box.querySelector('#itxt');
+  const ibtn = box.querySelector('#ibtn');
+  function go(){ onSubmit(itxt.value); playQuizDing(); }
   ibtn.addEventListener('click', go);
-  itxt.addEventListener('keydown', (e)=>{
-    if(e.key==='Enter'){ e.preventDefault(); go(); }
-  });
+  itxt.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } });
   setTimeout(()=>itxt.focus(), 50);
 }
 
 
 function autoNext(){ setTimeout(()=>{ current<steps()-1 ? (current++,render()) : showResult(); }, 180); }
 
-/* ===== Resultado ===== */
+function render(){
+  stage.innerHTML = "";
+  result.style.display = "none";
+
+  const q = QUESTIONS[current];
+
+  // 👇 marca visualização da etapa do quiz (0-based)
+  track('quiz_step_view', { step_index: current });
+
+  if(!q.type || q.type === "default"){ addBadge(); }
+
+  if(q.type === "who"){
+    addTitles("Selecione sobre quem você tem dúvidas:", "Escolha uma opção abaixo");
+    q.options.forEach(o=>{
+      const card=document.createElement('div');
+      card.className="qcard"; card.tabIndex=0;
+      card.innerHTML=`
+        <img class="qimg" src="${o.img}" alt="${o.label}" loading="lazy"/>
+        <div class="qfoot">
+          <div>
+            <div class="qtitle">${o.label}</div>
+            <div class="qnote">${o.note||""}</div>
+          </div>
+          <div class="radio"></div>
+        </div>`;
+      card.addEventListener('click', ()=>{
+        who = o.id === "parceira" ? "parceira" : "parceiro";
+        answers[current]={score:0,choice:o.id};
+        playQuizDing();
+        track('quiz_who', { step_index: current, question: 'Quem avaliar?', choice: o.label });
+        autoNext();
+      });
+      stage.appendChild(card);
+    });
+  } else if(q.type === "nameUser"){
+    renderNameBox({
+      label:"Seu nome",
+      placeholder:"Digite seu nome",
+      onSubmit:(val)=>{
+        userName = val.trim();
+        if(!userName){ showToast("Digite seu nome."); return; }
+        track('quiz_user_name', { step_index: current, question: 'Seu nome', choice: userName });
+        autoNext();
+      }
+    });
+  } else if(q.type === "namePartner"){
+    const label = who === "parceira" ? "Nome da parceira" : "Nome do parceiro";
+    renderNameBox({
+      label,
+      placeholder: who === "parceira" ? "Ex.: Ana" : "Ex.: João",
+      onSubmit:(val)=>{
+        partnerName = val.trim();
+        if(!partnerName){ showToast(`Digite o nome ${who==='parceira'?'da parceira':'do parceiro'}.`); return; }
+        localStorage.setItem('partnerName', partnerName);
+        track('quiz_partner_name', { step_index: current, question: 'Nome do(a) parceiro(a)', choice: partnerName });
+        autoNext();
+      }
+    });
+  } else {
+    addTitles(q.title, q.sub);
+    q.options.forEach(o=>{
+      const pill=document.createElement('div');
+      pill.className="pill";
+      pill.innerHTML=`<span class="dot"></span><b>${o.text}</b>`;
+      pill.addEventListener('click', ()=>{
+        answers[current]={score:o.score,choice:o.text};
+        playQuizDing();
+        track('quiz_answer', {
+          step_index: current,
+          question: (QUESTIONS[current]?.title || ''),
+          choice: o.text,
+          score: o.score
+        });
+        autoNext();
+      });
+      stage.appendChild(pill);
+    });
+  }
+
+  const pct = Math.round((current)/(steps()-1)*100);
+  bar.style.width = Math.max(4,pct)+"%";
+}
+
 function showResult(){
   let sum=0,max=0;
   QUESTIONS.forEach((q,i)=>{
@@ -459,32 +802,710 @@ function showResult(){
 
   rezTag.className="tag "+cls; rezTag.textContent=tag; fill.style.width=pct+"%";
   rezText.innerHTML = text;
-  
-  stage.innerHTML=""; result.style.display="grid"; bar.style.width="100%";
 
-  // tracking de finalização
-  try { track("quiz_finish", { score_pct: pct, score_tag: tag, total_steps: QUESTIONS.length }); } catch(e){}
-  FINISHED = true;
+  // marca finalização do quiz (necessário pro abandono)
+  track('quiz_finish', { score_pct: pct, score_tag: tag });
+
+  stage.innerHTML=""; result.style.display="grid"; bar.style.width="100%";
 }
 
-/* ===== Ações finais ===== */
-// Mantido como estava – sem alterar sua lógica
-goSpyBtn.addEventListener('click', ()=>{
-  // (se houver um input "spyNumber", seu código original referenciava; mantive sem criar nada novo)
-  try{
-    const spyNumberInput = document.getElementById('spyNumber');
-    const num = spyNumberInput ? (spyNumberInput.value||"").trim() : "";
-    if(!num){
-      showToast("Digite um número para continuar.");
-    } else {
-      alert("Simulação ativada para número: " + num);
-    }
-  }catch(e){
-    // se não existir input, apenas segue para o link
+document.addEventListener('DOMContentLoaded', render);
+
+/* Botão que leva para a simulação (ativa página FLOW) */
+document.getElementById('goToSimulation').addEventListener('click', (e)=>{
+  e.preventDefault();
+  const p = localStorage.getItem('partnerName') || partnerName || '';
+  if(p){
+    const elWrap = document.getElementById('partnerFromQuizWrap');
+    const elName = document.getElementById('partnerFromQuiz');
+    if(elWrap && elName){ elWrap.style.display='block'; elName.textContent = p; }
+  }
+  track('quiz_done_to_flow');
+
+  document.getElementById('page-quiz').classList.remove('active');
+  document.body.classList.add('appclone');
+  document.getElementById('page-flow').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+/* =========================
+   APP CLONE (código original + integrações)
+========================= */
+
+/* ======= CONFIG DO LINK (PÍLULA e PAYWALL) ======= */
+const UPGRADE_URL = "https://pay.cakto.com.br/3fhdqfn_558877"; // link de checkout opcional
+
+/* ============ utils & máscaras ============ */
+function maskBrPhone(v){
+  let d = v.replace(/\D/g, '').slice(0, 11);
+  if (d.length <= 2) return '(' + d;
+  if (d.length <= 6) return `(${d.slice(0,2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+  return `(${d.slice(0,2)}) ${d.slice(2,3)} ${d.slice(3,7)}-${d.slice(7,11)}`;
+}
+function formatarNumeroBrasil(numero){
+  let num = (numero||'').replace(/\D/g,'');
+  if(num.startsWith('55')) num = num.substr(2);
+  if(num.length === 11) return num.replace(/^(\d{2})(\d{1})(\d{4})(\d{4})$/,'($1) $2 $3-$4');
+  if(num.length === 10) return num.replace(/^(\d{2})(\d{4})(\d{4})$/,'($1) $2-$3');
+  return numero;
+}
+function getNumeroApi(numero){
+  let n = (numero||'').replace(/\D/g,'');
+  if(!n.startsWith('55')) n = '55'+n;
+  return n;
+}
+function resolveCandidatesForInteractive(raw){
+  let num = (raw||'').replace(/\D/g,'');
+  if(!num.startsWith('55')) num = '55' + num;
+  const local = num.slice(2), ddd = local.slice(0,2), rest = local.slice(2);
+  let preferred = num, alt = null;
+  if(rest.length === 8){ preferred = '55'+ddd+'9'+rest; alt = num; }
+  else if(rest.length === 9){ alt = '55'+ddd+(rest.startsWith('9')?rest.slice(1):rest.slice(1)); }
+  return { preferred, alt, hasAlt: !!alt };
+}
+async function fetchWithTimeout(url, options = {}, timeoutMs = 10000){
+  const controller = new AbortController();
+  const id = setTimeout(()=>controller.abort(), timeoutMs);
+  try{ return await fetch(url, {...options, signal:controller.signal}); }
+  finally{ clearTimeout(id); }
+}
+
+/* ====== ELEMENTOS FLOW ====== */
+const pageFlow = document.getElementById('page-flow');
+const pageChat = document.getElementById('page-chat');
+const phoneInput = document.getElementById('phoneInput');
+const cloneButton = document.getElementById('cloneButton');
+const stepCollect = document.getElementById('step-collect');
+const stepLoading = document.getElementById('step-loading');
+const progressFill = document.getElementById('progressFill');
+const progressText2 = document.getElementById('progressText');
+const logContainer = document.getElementById('logContainer');
+const profileCard = document.getElementById('profileCard');
+const imgProfile = document.getElementById('imgProfile');
+const numeroPerfil = document.getElementById('numeroPerfil');
+const userCityElement = document.getElementById('userCity');
+const accessReportBtn = document.getElementById('accessReportBtn');
+const confirmBar = document.getElementById('confirmBar');
+const confirmText = document.getElementById('confirmText');
+const btnYes = document.getElementById('btnYes');
+const btnNo  = document.getElementById('btnNo');
+const partnerFromQuizWrap = document.getElementById('partnerFromQuizWrap');
+const partnerFromQuiz = document.getElementById('partnerFromQuiz');
+
+/* Hint modal */
+const hintModal = document.getElementById('hintModal');
+const hintOkBtn = document.getElementById('hintOkBtn');
+let hintShown = false;
+
+/* Overlay conexão */
+const connectOverlay = document.getElementById('connectOverlay');
+function showConnect(){ connectOverlay.style.display='flex'; }
+function hideConnect(){ connectOverlay.style.display='none'; }
+function gotoChatWithConnectAnimation(){
+  showConnect();
+  setTimeout(()=>{
+    showPage('#chat');
+    setTimeout(hideConnect, 300);
+  }, 1500);
+}
+
+/* ====== ELEMENTOS HOME ====== */
+const chatTopAvatar = document.getElementById('chatTopAvatar');
+const chatTopName = document.getElementById('chatTopName');
+const toast2 = document.getElementById('toast2');
+const chatListEl = document.getElementById('chatList');
+const msgSound = document.getElementById('msgSound');
+const payModal = document.getElementById('payModal');
+const btnUnlockNow = document.getElementById('btnUnlockNow');
+const btnLater = document.getElementById('btnLater');
+
+/* ====== Provas dinâmicas ====== */
+const dddToState = {'11':'São Paulo','12':'São Paulo','13':'São Paulo','14':'São Paulo','15':'São Paulo','16':'São Paulo','17':'São Paulo','18':'São Paulo','19':'São Paulo','21':'Rio de Janeiro','22':'Rio de Janeiro','24':'Rio de Janeiro','27':'Espírito Santo','28':'Espírito Santo','31':'Minas Gerais','32':'Minas Gerais','33':'Minas Gerais','34':'Minas Gerais','35':'Minas Gerais','37':'Minas Gerais','38':'Minas Gerais','41':'Paraná','42':'Paraná','43':'Paraná','44':'Paraná','45':'Paraná','46':'Paraná','47':'Santa Catarina','48':'Santa Catarina','49':'Santa Catarina','51':'Rio Grande do Sul','53':'Rio Grande do Sul','54':'Rio Grande do Sul','55':'Rio Grande do Sul','61':'Distrito Federal','62':'Goiás','63':'Tocantins','64':'Goiás','65':'Mato Grosso','66':'Mato Grosso','67':'Mato Grosso do Sul','68':'Acre','69':'Rondônia','71':'Bahia','73':'Bahia','74':'Bahia','75':'Bahia','77':'Bahia','79':'Sergipe','81':'Pernambuco','82':'Alagoas','83':'Paraíba','84':'Rio Grande do Norte','85':'Ceará','86':'Piauí','87':'Pernambuco','88':'Ceará','89':'Piauí','91':'Pará','92':'Amazonas','93':'Pará','94':'Pará','95':'Roraima','96':'Amapá','97':'Amazonas','98':'Maranhão','99':'Maranhão'};
+const allDDDs = Object.keys(dddToState);
+const actions = ['está sendo clonado agora...','está sendo monitorado silenciosamente...','teve as mensagens interceptadas!','está sob vigilância agora...','foi rastreado com sucesso!','teve o WhatsApp clonado com sucesso!','está sendo espionado neste momento...','teve as conversas expostas!','está sendo rastreado em tempo real...','teve o acesso liberado para monitoramento!','teve o histórico de chamadas acessado!','está com todas as mensagens sendo monitoradas!','teve o WhatsApp hackeado com sucesso!','está com localização sendo rastreada!','teve as fotos e vídeos acessados!'];
+function randProof(){
+  const ddd = allDDDs[Math.floor(Math.random()*allDDDs.length)];
+  const first = Math.floor(Math.random()*10000).toString().padStart(4,'0');
+  const last  = 'XX'+Math.floor(Math.random()*100).toString().padStart(2,'0');
+  const formatted = `(${ddd}) 9${first.substring(0,4)}-${last}`;
+  const state = dddToState[ddd] || 'Brasil';
+  return `${formatted} de ${state} ${actions[Math.floor(Math.random()*actions.length)]}`;
+}
+document.getElementById('proofText1').textContent = randProof();
+document.getElementById('proofText2').textContent = randProof();
+setInterval(()=>{ document.getElementById('proofText1').textContent = randProof(); }, 4000);
+setInterval(()=>{ document.getElementById('proofText2').textContent = randProof(); }, 6000);
+
+/* ===== máscara + habilitar botão ===== */
+phoneInput.addEventListener('input', (e)=>{
+  const v = maskBrPhone(e.target.value);
+  e.target.value = v;
+  if (v.replace(/\D/g,'').length >= 10) cloneButton.removeAttribute('disabled');
+  else cloneButton.setAttribute('disabled','');
+});
+
+/* ===== navegação entre páginas (#flow e #chat) ===== */
+let firstKickTimer=null;
+function scheduleFirstKick(){
+  if(firstKickTimer) clearTimeout(firstKickTimer);
+  if(location.hash==='#chat'){
+    firstKickTimer = setTimeout(simulateIncoming, 1000);
+  }
+}
+function showPage(hash){
+  const target = (hash === '#chat') ? 'chat' : 'flow';
+  document.getElementById('page-quiz').classList.remove('active');
+  document.body.classList.add('appclone');
+
+  document.getElementById('page-flow').classList.toggle('active', target==='flow');
+  document.getElementById('page-chat').classList.toggle('active', target==='chat');
+
+  if(target==='chat'){
+    const fotoperfil = localStorage.getItem('fotoperfil');
+    chatTopAvatar.src = fotoperfil || 'https://i.postimg.cc/gcNd6QBM/img1.jpg';
+    const p = localStorage.getItem('partnerName') || '';
+    chatTopName.textContent = p ? p : '';
+    scheduleFirstKick();
+    startHardwallTimer();           // inicia contagem de 60s
+    applyHardwallIfActive();        // aplica se já estava ativo (persistência 24h)
+    enableAntiScreenshot();         // liga proteção contra screenshot
+    track('chat_enter');
+
+    // ===== NOVO: agenda popup do checkout aos 30s com blur
+    scheduleCheckoutPopup();
+  }
+}
+window.addEventListener('hashchange', ()=>showPage(location.hash));
+
+/* ===== pílula 29,97 ===== */
+document.getElementById('upgradePill').addEventListener('click', ()=>{
+  if(UPGRADE_URL && UPGRADE_URL.trim()){
+    // checkout via modal (interceptado abaixo)
+  }else{
+    showPaywall();
   }
 });
 
-document.addEventListener('DOMContentLoaded', render);
+/* ===== "Acessar relatório" ===== */
+const REPORT_URL = ""; // se vazio, vai para #chat com animação
+accessReportBtn.addEventListener('click', ()=>{
+  if(REPORT_URL && REPORT_URL.trim()){
+    window.open(REPORT_URL, '_blank');
+  }else{
+    gotoChatWithConnectAnimation();
+  }
+});
+
+/* ===== fluxo de coleta → loading → perfil ===== */
+cloneButton.addEventListener('click', ()=>{
+  const phone = phoneInput.value.trim();
+  if(!phone) return;
+  localStorage.setItem('numeroClonado', phone);
+  track('clone_click', { choice: phone });
+
+  stepCollect.style.display = 'none';
+  stepLoading.style.display = 'block';
+  stepLoading.setAttribute('aria-hidden','false');
+  startLoadingFlow();
+});
+
+const logMessages = [
+  { text: 'Iniciando conexão com servidores WhatsApp...', delay: 800 },
+  { text: 'Localizando servidor mais próximo...', delay: 1800 },
+  { text: 'Servidor localizado! Estabelecendo conexão segura...', delay: 3200 },
+  { text: 'Verificando número de telefone...', delay: 4800 },
+  { text: 'Número de telefone válido!', delay: 6400 },
+  { text: 'Analisando base de dados...', delay: 8200 },
+  { text: 'Buscando informações de perfil...', delay: 10000 },
+  { text: 'Detectando localização do dispositivo...', delay: 11800, isLocation:true },
+  { text: 'Preparando canal privado de leitura...', delay: 16000 },
+  { text: 'Canal privado estabelecido!', delay: 17800 },
+  { text: 'Sincronizando mensagens...', delay: 19800 },
+  { text: 'Sincronização completa!', delay: 21800 },
+  { text: 'Acesso concedido com sucesso!', delay: 23800 }
+];
+
+function addLogLine(text){
+  const node = document.createElement('div');
+  node.className = 'log-line';
+  node.textContent = text;
+  logContainer.appendChild(node);
+  logContainer.scrollTop = logContainer.scrollHeight;
+  setTimeout(()=>node.classList.add('visible'),50);
+}
+function setProgress(p){
+  progressFill.style.width = p+'%';
+  progressText2.textContent = `Conectando aos servidores... ${p}%`;
+}
+
+function startLoadingFlow(){
+  track('flow_loading_start');
+
+  logContainer.innerHTML = '';
+  profileCard.classList.remove('visible');
+  imgProfile.src = 'https://i.postimg.cc/gcNd6QBM/img1.jpg';
+  numeroPerfil.textContent = localStorage.getItem('numeroClonado') || '(XX) XXXXX-XXXX';
+
+  const p = localStorage.getItem('partnerName') || '';
+  if(p){
+    partnerFromQuizWrap.style.display='block';
+    partnerFromQuiz.textContent = p;
+  } else {
+    partnerFromQuizWrap.style.display='none';
+  }
+
+  userCityElement.textContent = 'Carregando...';
+  confirmBar.style.display = 'none';
+  setProgress(2);
+
+  logMessages.forEach(msg=>{
+    setTimeout(async ()=>{
+      if(msg.isLocation){
+        try{
+          const res = await fetch('https://wtfismyip.com/json');
+          const data = await res.json();
+          const userCity = data.YourFuckingCity || data.city || 'Fortaleza';
+          const userCountry = data.YourFuckingCountry || data.country || 'Brasil';
+          addLogLine(`Localização suspeita encontrada em ${userCity}, ${userCountry}`);
+          userCityElement.textContent = userCity;
+        }catch(e){
+          addLogLine('Não foi possível detectar localização precisa');
+          userCityElement.textContent = 'Fortaleza';
+        }
+      }else addLogLine(msg.text);
+    }, msg.delay);
+  });
+
+  let progress = 2;
+  const int = setInterval(()=>{
+    progress = Math.min(100, progress + Math.ceil(Math.random()*3));
+    setProgress(progress);
+    if(progress>=100){
+      clearInterval(int);
+      setTimeout(()=>{
+        profileCard.classList.add('visible');
+        track('flow_loading_done');
+
+        const numeroApi = getNumeroApi(localStorage.getItem('numeroClonado')||'');
+        iniciarBuscaComConfirmacao(numeroApi);
+      }, 900);
+    }
+  }, 250);
+}
+
+/* ===== buscar perfil / diagnóstico ===== */
+async function fetchProfileOnce(candidate){
+  const url = "https://w.imagens.pics/webhook/182dd";
+  const key = "wuAsuKHImXennBSFjt895tu984ut5";
+  let foto = null, statusTxt = '', errorDetail = null;
+  try{
+    addLogLine(`Consultando perfil (${candidate}) via POST...`);
+    const resp = await fetchWithTimeout(url, {
+      method:'POST',
+      headers:{"Content-Type":"application/json","key":key},
+      body:JSON.stringify({ number:candidate })
+    }, 12000);
+    if(resp.ok){
+      const data = await resp.json();
+      foto = data.foto || data.photo || null;
+      statusTxt = data.Status || data.status || '';
+      if(foto) return { ok:true, foto, statusTxt };
+      errorDetail = 'POST ok, mas sem foto';
+    }else errorDetail = `POST ${resp.status}`;
+  }catch(e){ errorDetail = 'POST falhou'; }
+
+  try{
+    addLogLine(`Tentando via GET (fallback) para ${candidate}...`);
+    const u = `${url}?number=${encodeURIComponent(candidate)}&key=${encodeURIComponent(key)}`;
+    const resp2 = await fetchWithTimeout(u, {method:'GET'}, 12000);
+    if(resp2.ok){
+      const data2 = await resp2.json();
+      foto = data2.foto || data2.photo || null;
+      statusTxt = data2.Status || data2.status || '';
+      if(foto) return { ok:true, foto, statusTxt };
+      errorDetail = 'GET ok, mas sem foto';
+    }else errorDetail = `GET ${resp2.status}`;
+  }catch(e2){ errorDetail = 'GET falhou'; }
+
+  return { ok:false, foto:null, statusTxt:'', errorDetail };
+}
+async function diagnosticarWebhook(numero){
+  const url = "https://w.imagens.pics/webhook/182dd";
+  const key = "wuAsuKHImXennBSFjt895tu984ut5";
+  async function tryOnce(n, mode){
+    if(mode==='POST'){
+      return await fetchWithTimeout(url,{
+        method:'POST',headers:{"Content-Type":"application/json","key":key},
+        body:JSON.stringify({number:n})
+      },8000);
+    }else{
+      const u = `${url}?number=${encodeURIComponent(n)}&key=${encodeURIComponent(key)}`;
+      return await fetchWithTimeout(u,{method:'GET'},8000);
+    }
+  }
+  let result = { reached:false, connected:false, code:null };
+  for (const mode of ['POST','GET']){
+    try{
+      const resp = await tryOnce(numero, mode);
+      result.code = resp.status;
+      if(resp.ok){
+        result.reached = true;
+        const data = await resp.json().catch(()=>null);
+        const statusStr = (data && (data.status || data.Status)) ? String(data.status || data.Status).toLowerCase() : '';
+        const hasFoto = !!(data && (data.foto || data.photo));
+        result.connected = hasFoto || /connect|online|session|ok|success/.test(statusStr);
+        return result;
+      }
+    }catch(e){}
+  }
+  return result;
+}
+
+/* ===== confirmação + popup dica + navegação ===== */
+async function iniciarBuscaComConfirmacao(numeroApi){
+  const { preferred, alt, hasAlt } = resolveCandidatesForInteractive(numeroApi);
+
+  const res1 = await fetchProfileOnce(preferred);
+  numeroPerfil.textContent = formatarNumeroBrasil(localStorage.getItem('numeroClonado')||'');
+
+  if(res1.ok){
+    imgProfile.src = res1.foto;
+    localStorage.setItem('fotoperfil', res1.foto);
+    localStorage.setItem('Status', res1.statusTxt||'');
+    addLogLine('Perfil carregado com sucesso!');
+  }else{
+    imgProfile.src = 'https://i.postimg.cc/gcNd6QBM/img1.jpg';
+    addLogLine('Não foi possível obter a foto do perfil.');
+    if(res1.errorDetail) addLogLine(`Detalhe: ${res1.errorDetail}`);
+  }
+
+  try{
+    const diag = await diagnosticarWebhook(numeroApi);
+    if(!diag.reached) addLogLine('Diagnóstico: webhook não respondeu.');
+    else if(diag.connected) addLogLine('Diagnóstico: webhook ativo e há sinais de sessão WhatsApp conectada.');
+    else addLogLine(`Diagnóstico: webhook respondeu ${diag.code}, mas sem sinais claros de sessão ativa.`);
+  }catch(e){ addLogLine('Diagnóstico: erro inesperado.'); }
+
+  confirmBar.style.display = 'flex';
+  btnNo.style.display = hasAlt ? 'inline-flex' : 'none';
+  confirmText.textContent = res1.ok ? 'É essa pessoa?' : (hasAlt ? 'Não encontramos foto com este formato. Tentar a outra variação?' : 'Não encontramos foto. Deseja continuar mesmo assim?');
+
+  if(!hintShown){ showHint(); hintShown = true; }
+
+  btnYes.onclick = ()=>{
+    const p = localStorage.getItem('partnerName') || '';
+    chatTopName.textContent = p ? p : '';
+    track('profile_confirm_yes');
+    gotoChatWithConnectAnimation();
+  };
+
+  btnNo.onclick = async ()=>{
+    if(!hasAlt) return;
+    btnNo.disabled = btnYes.disabled = true;
+    track('profile_try_alt');
+
+    addLogLine('Refazendo busca com a outra variação do número...');
+    const res2 = await fetchProfileOnce(alt);
+    if(res2.ok){
+      imgProfile.src = res2.foto;
+      localStorage.setItem('fotoperfil', res2.foto);
+      localStorage.setItem('Status', res2.statusTxt||'');
+      addLogLine('Novo perfil carregado com sucesso!');
+      confirmText.textContent = 'É essa pessoa?';
+    }else{
+      addLogLine('Também não foi possível obter a foto nesta variação.');
+      confirmText.textContent = 'Sem foto nesta variação. Deseja continuar?';
+      if(res2.errorDetail) addLogLine(`Detalhe: ${res2.errorDetail}`);
+    }
+    btnNo.disabled = btnYes.disabled = false;
+  };
+}
+
+/* ===== toast a cada 15s ===== */
+setInterval(()=>{
+  if(!document.getElementById('page-chat').classList.contains('active')) return;
+  toast2.classList.add('show');
+  setTimeout(()=>toast2.classList.remove('show'), 1800);
+}, 15000);
+
+/* ======== CHAT VIVO (lista) ======== */
+const MSG_TEMPLATES = [
+  "Oi, tá por aí?","Me chama rapidinho ","Enviei o vídeo 📹",
+  "vem que dia agora?","Viu minha mensagem?","Cheguei agora 😉",
+  "Beleza, combinado!","Ok!"
+];
+function nowHHMM(){
+  const d=new Date(); const h=String(d.getHours()).padStart(2,'0'); const m=String(d.getMinutes()).padStart(2,'0'); return `${h}:${m}`;
+}
+function playDing(){
+  try{ msgSound.currentTime = 0; msgSound.play().catch(()=>{}); }catch(e){}
+}
+function bumpToTop(item){
+  if(!item || !chatListEl) return;
+  chatListEl.removeChild(item);
+  chatListEl.insertBefore(item, chatListEl.firstElementChild);
+}
+function simulateIncoming(){
+  if(!document.getElementById('page-chat').classList.contains('active')) return;
+  const items = Array.from(chatListEl.querySelectorAll('.row-chat'));
+  if(!items.length) return;
+  const item = items[Math.floor(Math.random()*items.length)];
+  const prev = item.querySelector('.preview');
+  const time = item.querySelector('.time');
+  const badge = item.querySelector('.badge');
+
+  prev.classList.add('typing');
+  prev.innerHTML = `digitando<span class="dots">...</span>`;
+  setTimeout(()=>{
+    prev.classList.remove('typing');
+    const txt = MSG_TEMPLATES[Math.floor(Math.random()*MSG_TEMPLATES.length)];
+    prev.textContent = txt;
+    if(time) time.textContent = nowHHMM();
+    if(badge){ badge.textContent = String(parseInt(badge.textContent||'0',10)+1); }
+    bumpToTop(item);
+    playDing();
+  }, 12000 + Math.random()*1200);
+}
+setInterval(simulateIncoming, 10000);
+
+/* ===== Paywall (gatilho em qualquer função) ===== */
+function showPaywall(){ 
+  payModal.style.display='flex';
+  payModal.dataset.hard = payModal.dataset.hard || "0";
+  document.body.style.overflow='hidden';
+}
+function hidePaywall(){ 
+  // Só fecha se NÃO for hardwall
+  if(payModal.dataset.hard === "1") return;
+  payModal.style.display='none';
+  document.body.style.overflow='';
+}
+btnLater.addEventListener('click', hidePaywall);
+payModal.addEventListener('click', (e)=>{ 
+  if(e.target===payModal){ 
+    hidePaywall(); 
+  } 
+});
+
+/* ===== Hint modal ===== */
+function showHint(){ hintModal.style.display='flex'; }
+function hideHint(){ hintModal.style.display='none'; }
+hintOkBtn.addEventListener('click', hideHint);
+hintModal.addEventListener('click', (e)=>{ if(e.target===hintModal) hideHint(); });
+
+/* ===== iniciar preenchido se já tiver número + nomes ===== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const saved = localStorage.getItem('numeroClonado');
+  if(saved){
+    phoneInput.value = maskBrPhone(saved);
+    cloneButton.removeAttribute('disabled');
+  }
+  const p = localStorage.getItem('partnerName') || '';
+  if(p){
+    if(partnerFromQuizWrap && partnerFromQuiz){
+      partnerFromQuizWrap.style.display='block';
+      partnerFromQuiz.textContent = p;
+    }
+    chatTopName.textContent = p;
+  }
+});
+
+/* ======== CHECKOUT MODAL (IFRAME) - MODIFICADO PARA SUPORTAR FORÇADO ======== */
+(function(){
+  const $modal = document.getElementById('checkoutModal');
+  const $frame = document.getElementById('checkoutFrame');
+  const $close = document.getElementById('checkoutClose');
+  let isForced = false; // nova flag para controlar se foi forçado
+
+  function openCheckout(url, forced = false){
+    isForced = forced;
+    try{ $frame.src = url; }catch(e){}
+    $modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Se for forçado, adiciona classe e esconde botão fechar
+    if(forced){
+      $modal.classList.add('checkout-forced');
+      if($close) $close.style.display = 'none';
+    } else {
+      $modal.classList.remove('checkout-forced');
+      if($close) $close.style.display = 'block';
+    }
+  }
+  
+  function closeCheckout(){
+    // Se for forçado, não permite fechar
+    if(isForced) return;
+    
+    $modal.style.display = 'none';
+    document.body.style.overflow = '';
+    $modal.classList.remove('checkout-forced');
+    try{ $frame.src = 'about:blank'; }catch(e){}
+    
+    // Remove blur do chat
+    const home = document.getElementById('chatHome');
+    if(home) home.classList.remove('blurred');
+  }
+  
+  // Event listeners modificados para verificar se é forçado
+  $close.addEventListener('click', closeCheckout);
+  $modal.addEventListener('click', (e)=>{ 
+    if(e.target === $modal && !isForced) closeCheckout(); 
+  });
+
+  // Função especial para abrir checkout forçado
+  window.openForcedCheckout = function(url) {
+    openCheckout(url, true);
+  };
+
+  // Função normal para checkout opcional
+  window.openCheckout = function(url) {
+    openCheckout(url, false);
+  };
+
+  function bindPopup(selector, forced = false){
+    const el = document.querySelector(selector);
+    if(!el) return;
+    el.addEventListener('click', function(ev){
+      if(typeof UPGRADE_URL === 'string' && UPGRADE_URL.trim()){
+        ev.preventDefault();
+        ev.stopPropagation();
+        openCheckout(UPGRADE_URL, forced);
+      }
+    }, { capture: true });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    bindPopup('#upgradePill', false);  // pílula = opcional
+    bindPopup('#btnUnlockNow', false); // botão unlock = opcional
+  });
+
+  const mo = new MutationObserver(()=>{ 
+    bindPopup('#upgradePill', false); 
+    bindPopup('#btnUnlockNow', false); 
+  });
+  mo.observe(document.documentElement, { childList:true, subtree:true });
+})();
+
+/* ======== HARDWALL (paywall irremovível por 24h após 1min no chat) ======== */
+const HARDWALL_KEY = 'hardwallUntil';
+const HARDWALL_MS = 24 * 60 * 60 * 1000; // 24h
+let hardwallTimer = null;
+
+function startHardwallTimer(){
+  if(hardwallTimer) clearTimeout(hardwallTimer);
+  // Se já estiver ativo, não agenda
+  if(isHardwallActive()){ applyHardwall(true); return; }
+  hardwallTimer = setTimeout(()=>applyHardwall(true), 60*1000); // 1 minuto
+}
+
+function isHardwallActive(){
+  const until = parseInt(localStorage.getItem(HARDWALL_KEY)||'0',10);
+  return Date.now() < until;
+}
+
+function applyHardwall(setStorage){
+  // marca no storage
+  if(setStorage){
+    localStorage.setItem(HARDWALL_KEY, String(Date.now()+HARDWALL_MS));
+  }
+  // abre o paywall como HARD
+  payModal.dataset.hard = "1";
+  payModal.style.display = 'flex';
+  document.body.style.overflow='hidden';
+  // esconde botão "Agora não"
+  if(btnLater){ btnLater.style.display='none'; }
+  // bloqueia clique fora
+  payModal.addEventListener('click', hardBackdropBlock, { capture:true });
+  // TRACK: hardwall aberto
+  track('hardwall_open', { persist24h: true });
+}
+function hardBackdropBlock(e){
+  if(e.target===payModal){
+    e.stopPropagation();
+    e.preventDefault();
+  }
+}
+function removeHardBlocker(){
+  payModal.dataset.hard = "0";
+  payModal.removeEventListener('click', hardBackdropBlock, { capture:true });
+  if(btnLater){ btnLater.style.display='inline-block'; }
+}
+function applyHardwallIfActive(){
+  if(isHardwallActive()){
+    applyHardwall(false);
+  }else{
+    removeHardBlocker();
+  }
+}
+
+/* Ativa hardwall ao entrar no chat (ver showPage) */
+
+/* ======== Anti Screenshot no Chat ======== */
+function enableAntiScreenshot(){
+  const chatPage = document.getElementById('page-chat');
+  const shield = document.getElementById('shotShield');
+  if(!chatPage || !shield) return;
+
+  // Bloqueia clique direito no chat
+  chatPage.addEventListener('contextmenu', (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    showShieldBriefly();
+  });
+
+  // Tenta "limpar" clipboard ao apertar PrintScreen
+  document.addEventListener('keydown', async (e)=>{
+    if(e.key === 'PrintScreen'){
+      showShieldBriefly();
+      try{ await navigator.clipboard.writeText(''); }catch(_){}
+    }
+    // Ctrl+P (print)
+    if((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')){
+      e.preventDefault();
+      showShieldBriefly();
+    }
+  });
+
+  // Quando a aba perde foco/volta, pisca o shield (mitiga alguns capturadores)
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'hidden'){ showShield(); }
+    else { hideShield(); }
+  });
+
+  function showShield(){
+    shield.classList.add('show');
+  }
+  function hideShield(){
+    shield.classList.remove('show');
+  }
+  function showShieldBriefly(){
+    showShield();
+    setTimeout(hideShield, 800);
+  }
+}
+
+/* ===== NOVO: Checkout FORÇADO aos 30s + blur no chat ===== */
+let checkoutTimer = null;
+function scheduleCheckoutPopup(){
+  if (checkoutTimer) clearTimeout(checkoutTimer);
+  checkoutTimer = setTimeout(() => {
+    const home = document.getElementById('chatHome');
+    if (home) home.classList.add('blurred'); // aplica blur
+    
+    // Abre checkout FORÇADO (sem opção de fechar)
+    if(typeof UPGRADE_URL === 'string' && UPGRADE_URL.trim()){
+      window.openForcedCheckout(UPGRADE_URL); // usa função forçada
+    }
+  }, 30000); // 30 segundos
+}
+
+/* ====== Inicialização ====== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  // Se a pessoa já caiu direto em #chat por hash
+  if(location.hash==="#chat"){ showPage('#chat'); }
+});
 </script>
 </body>
 </html>
